@@ -49,7 +49,7 @@ $dataProperties = array(
 
 ## Step 2: Helper functions
 These helper functions are used to extract and format data from the log file.
->!NOTE
+>[!NOTE]
 > The code provided here is a simplified version of the actual code used in the challenge.
 #
 

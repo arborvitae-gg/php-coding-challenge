@@ -1,4 +1,4 @@
-Section 1: Pipe delimited version of the log.
+SECTION 1: Pipe delimited version of the log.
 GITB|660,428|424,450|Tue, 10 September 2019 06:05:00|58QV-Q26X
 LBCA|476,255|413,615|Tue, 10 September 2019 06:09:00|278NV-Y69K
 CHAI|955,937|669,285|Tue, 10 September 2019 06:15:00|665PP-G26P
@@ -10836,7 +10836,7 @@ JCEF|400,291|273,855|Wed, 11 September 2019 16:19:00|987RS-U85K
 MBUO|635,432|843,070|Wed, 11 September 2019 16:20:00|667SS-V38S
 JDPQ|540,626|417,112|Wed, 11 September 2019 16:22:00|308OX-N26S
 
-Section 2: IDs sorted in ascending order.
+SECTION 2: IDs sorted in ascending order.
 1AM-H86S
 1BR-O31E
 1DW-V82Q
@@ -21674,7 +21674,7 @@ Section 2: IDs sorted in ascending order.
 1000WQ-H99P
 1000XY-K42Z
 
-Section 3: Unique User IDs sorted in ascending order, numbers are enclosed in [ ]
+SECTION 3: Unique User IDs sorted in ascending order, numbers are enclosed in [ ].
 [1] AALP
 [2] ABCM
 [3] ABRB

@@ -1,63 +1,176 @@
-# PHP Coding Challenge
-## Think you're a PHP wizard? Prove it! We're hiring developers who can not only write clean code but also solve complex problems.<br/><br/>
-###
+# Solution to the PHP Coding Challenge
+My 3-step solution to the coding challenge.
 
-Develop a PHP command-line application that processes the [sample-logs.txt](https://github.com/pdsc-ph/php-coding-challenge/blob/main/sample-log.txt) file above. The program should extract and output specific data from the file according to the following specifications:                                                                                                                                                                     
+
+## Step 1: Define field specifications
+In `dataProperties.php`, we first define the structure of each field as a multi-dimensional associative array. 
+
+Each field includes:
+- `position`: TStarting index in the log line (1-based)
+- `length`: Number of characters to extract
+- `format`: How the value should be processed
+                                         
+```php
+$dataProperties = array(
+
+    "userId" => array(
+        "position" => 13,
+        "length"   => 6,
+        "format"   => "text",
+    ),
+
+    "bytesTX" => array(
+        "position" => 19,
+        "length"   => 8,
+        "format"   => "number",
+    ),
+
+    "bytesRX" => array(
+        "position" => 27,
+        "length"   => 8,
+        "format"   => "number",
+    ),
+
+    "dateTime" => array(
+        "position" => 35,
+        "length"   => 17,
+        "format"   => "date",
+    ),
+
+    "id" => array(
+        "position" => 1,
+        "length"   => 12,
+        "format"   => "text",
+    ),
+);
 ```
-<ID>
-Position: 1
-Length: 12
+>!NOTE
+> The `id` field is placed last in the array to match the required pipe-delimited output order: `<UserID>|<BytesTX|<BytesRX|<DateTime>|<ID>`
 
-<UserID>
-Position: 13
-Length: 6
+## Step 2: Helper functions
+These helper functions are used to extract and format data from the log file.
+>!NOTE
+> The code provided here is a simplified version of the actual code used in the challenge.
+#
 
-<BytesTX>
-Position: 19
-Length: 8
+`yieldEntries($filepath)` 
+Efficiently reads the input file line by line using a generator.
 
-<BytesRX>
-Position: 27
-Length: 8
-
-<DateTime>
-Position: 35
-Length: 17
+```php
+function yieldEntries($filePath) {
+    $file = fopen($filePath, 'r');    
+    while (($line = fgets($file)) !== false) {
+        yield $line;
+    }
+    fclose($file);
+}
 ```
 
-Conditions:
-* Whitespaces should be removed from the field values
-* BytesTX and BytesRX fields must be formatted with commas as thousand separators
-* DateTime field should be in the following format: ``Tue, 04 March 2025 00:00:00``
-
-The program must create an output.txt file and contain the following details (see [sample-output.txt](https://github.com/pdsc-ph/php-coding-challenge/blob/main/sample-output.txt) file):
-1. A pipe delimited version of the log in the following format: ``<UserID>|<BytesTX|<BytesRX|<DateTime>|<ID>``
-2. A list of IDs sorted in ascending order. Review the sorting properly. Below is an example of an improper sorting:
-```
-.
-.
-1000VM-B28F
-1000WQ-H99P
-1000XY-K42Z
-100AS-V5X
-100BT-T92V
-.
-.
-```
-4. A list of unique UserIDs sorted in ascending order with a result id enclosed in [ ] (Example: ``[1] <UserID>``)
+> [!TIP]
+> Using a generator allows the file to be processed line by line without loading the entire file into memory, reducing memory usage and improving performance.
 
 ##
-## To submit your application, please send your program, the generated output file, and your Curriculum Vitae (CV) or Resume to <ins>**careers.it@pds.dbello.com**</ins>. Kindly provide your mobile phone number within the email so that we may contact you.<br/><br/>
 
-Qualifications
-* Bachelor's degree in computer science, Information Technology, or a related field (or equivalent experience).
-* 3+ years of experience in PHP development.
-* Filipino citizen residing the in the Philippines
+`extractField()` 
+Extracts a field entry by position and length, then trims whitespace.
+```php
+function extractField($entry, $position, $length) {
+    return trim(substr($entry, $position, $length));
+}
+```
 
-Required Skills:
-* Strong proficiency in PHP and backend programming.
-* Solid understanding of MySQL databases.
-* Familiarity with version control systems (Git).
-* Excellent problem-solving and debugging skills.
-* Strong communication and teamwork skills.
-* Familiarity with front-end technologies is a plus (HTML, CSS, JavaScript and front-end technologies such jQuery, Bootstrap, and other libraries).
+##
+
+`formatNumber()` 
+formats a number by adding comma separators for thousands.
+```php
+function formatNumber($value) {
+    return number_format($value);
+}
+```
+
+##
+
+`formatDateTime()` converts a date-time string into the following format: `Day, dd Month YYYY HH:mm:ss`
+```php
+function formatDateTime($dateTime) {
+    $timestamp = strtotime($dateTime);
+    if ($timestamp === false) return $dateTime;
+    return date('D, d F Y H:i:s', $timestamp);
+}
+```
+
+## Step 3: Solution Program Flow
+
+### Initialization and setup
+```php
+require 'dataProperties.php';
+require 'helpers.php';
+
+$filePath = 'sample-log.txt';
+$outputPath = 'output.txt';
+
+$logEntries = [];
+$uniqueUserIDs = [];
+$outputLines = [];
+```
+
+### Parse and format log entries
+```php
+foreach (yieldEntries($filePath) as $entry) {
+  if ($entry === false) break; 
+  $parsedData = [];
+
+  foreach ($dataProperties as $key => $property) {
+    $value = extractField($entry, $property['position']-1, $property['length']);
+
+    switch($property['format']){
+      case 'number': 
+        $value = formatNumber($value); 
+        break;
+
+      case 'date': 
+        $value = formatDateTime($value); 
+        break;
+
+      default: $value;
+    }
+    $parsedData[$key] = $value;
+  }
+  $logEntries[] = $parsedData;
+  $uniqueUserIDs[$parsedData['userId']] = true; 
+}
+```
+
+###  Sort and extract IDs and Unique User IDs
+```php
+$ids = array_column($logEntries, 'id');
+natsort($ids);
+$ids = array_values($ids);
+
+$userIDs = array_keys($uniqueUserIDs);
+sort($userIDs);
+$userIDs = array_values($userIDs); 
+```
+
+### Generate output
+```php
+$outputLines[] = "SECTION 1: Pipe delimited version of the log.";
+foreach ($logEntries as $entry) {
+  $values = [];
+  foreach (array_keys($dataProperties) as $key) $values[] = $entry[$key];
+  $outputLines[] = implode('|', $values);
+}
+
+$outputLines[] = "\nSECTION 2: IDs sorted in ascending order.";
+foreach ($ids as $id) $outputLines[] = $id;
+
+$outputLines[] = "\nSECTION 3: Unique User IDs sorted in ascending order, numbers are enclosed in [ ].";
+foreach ($userIDs as $index => $userID) $outputLines[] = "[" . ($index + 1) . "] " . $userID;
+```
+
+### Write output to file
+```php
+file_put_contents($outputPath, implode(PHP_EOL, $outputLines));
+echo "Output written to: $outputPath\n";
+```

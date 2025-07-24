@@ -1,7 +1,7 @@
 <?php
 
 require 'dataProperties.php';
-require 'functions.php';
+require 'helpers.php';
 
 $filePath = 'sample-log.txt';
 $outputPath = 'output.txt';
@@ -56,5 +56,4 @@ $outputLines[] = "\nSECTION 3: Unique User IDs sorted in ascending order, number
 foreach ($userIDs as $index => $userID) $outputLines[] = "[" . ($index + 1) . "] " . $userID;
 
 file_put_contents($outputPath, implode(PHP_EOL, $outputLines));
-
 echo "Output written to: $outputPath\n";

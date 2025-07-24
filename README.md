@@ -44,7 +44,7 @@ $dataProperties = array(
     ),
 );
 ```
->!NOTE
+>[!NOTE]
 > The `id` field is placed last in the array to match the required pipe-delimited output order: `<UserID>|<BytesTX|<BytesRX|<DateTime>|<ID>`
 
 ## Step 2: Helper functions

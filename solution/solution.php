@@ -42,17 +42,17 @@ $userIDs = array_keys($uniqueUserIDs);
 sort($userIDs);
 $userIDs = array_values($userIDs); 
 
-$outputLines[] = "Section 1: Pipe delimited version of the log.";
+$outputLines[] = "SECTION 1: Pipe delimited version of the log.";
 foreach ($logEntries as $entry) {
   $values = [];
   foreach (array_keys($dataProperties) as $key) $values[] = $entry[$key];
   $outputLines[] = implode('|', $values);
 }
 
-$outputLines[] = "\nSection 2: IDs sorted in ascending order.";
+$outputLines[] = "\nSECTION 2: IDs sorted in ascending order.";
 foreach ($ids as $id) $outputLines[] = $id;
 
-$outputLines[] = "\nSection 3: Unique User IDs sorted in ascending order, numbers are enclosed in [ ].";
+$outputLines[] = "\nSECTION 3: Unique User IDs sorted in ascending order, numbers are enclosed in [ ].";
 foreach ($userIDs as $index => $userID) $outputLines[] = "[" . ($index + 1) . "] " . $userID;
 
 file_put_contents($outputPath, implode(PHP_EOL, $outputLines));

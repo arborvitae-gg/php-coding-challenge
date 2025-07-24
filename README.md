@@ -100,22 +100,25 @@ function formatDateTime($dateTime) {
 }
 ```
 
-## Step 3: Solution Program Flow
-
+## Step 3: Implement the solution
+The solution is implemented in `index.php`.
 ### Initialization and setup
 ```php
 require 'dataProperties.php';
 require 'helpers.php';
-
+```
+```php
 $filePath = 'sample-log.txt';
 $outputPath = 'output.txt';
-
+```
+```php
 $logEntries = [];
 $uniqueUserIDs = [];
 $outputLines = [];
 ```
 
 ### Parse and format log entries
+Since we are using a generator, we can efficiently read the input file line by line, extracting the fields and formatting them at the same time.
 ```php
 foreach (yieldEntries($filePath) as $entry) {
   if ($entry === false) break; 
@@ -143,11 +146,13 @@ foreach (yieldEntries($filePath) as $entry) {
 ```
 
 ###  Sort and extract IDs and Unique User IDs
+`natsort()` is used to sort the IDs because they are in a mixed case format.
 ```php
 $ids = array_column($logEntries, 'id');
 natsort($ids);
 $ids = array_values($ids);
-
+```
+```php
 $userIDs = array_keys($uniqueUserIDs);
 sort($userIDs);
 $userIDs = array_values($userIDs); 
@@ -161,10 +166,12 @@ foreach ($logEntries as $entry) {
   foreach (array_keys($dataProperties) as $key) $values[] = $entry[$key];
   $outputLines[] = implode('|', $values);
 }
-
+```
+```php
 $outputLines[] = "\nSECTION 2: IDs sorted in ascending order.";
 foreach ($ids as $id) $outputLines[] = $id;
-
+```
+```php
 $outputLines[] = "\nSECTION 3: Unique User IDs sorted in ascending order, numbers are enclosed in [ ].";
 foreach ($userIDs as $index => $userID) $outputLines[] = "[" . ($index + 1) . "] " . $userID;
 ```
@@ -172,5 +179,4 @@ foreach ($userIDs as $index => $userID) $outputLines[] = "[" . ($index + 1) . "]
 ### Write output to file
 ```php
 file_put_contents($outputPath, implode(PHP_EOL, $outputLines));
-echo "Output written to: $outputPath\n";
 ```

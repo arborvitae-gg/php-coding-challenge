@@ -45,8 +45,7 @@ $dataProperties = array(
 );
 ```
 >[!NOTE]
-> The `id` field is placed last in the array to match the required pipe-delimited output order:
->`<UserID>|<BytesTX|<BytesRX|<DateTime>|<ID>`
+> The `id` field is placed last in the array to match the required output format order: `<UserID>|<BytesTX|<BytesRX|<DateTime>|<ID>`
 
 ## Step 2: Helper functions
 These helper functions are used to extract and format data from the log file.

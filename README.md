@@ -3,180 +3,113 @@ My 3-step solution to the coding challenge.
 
 
 ## Step 1: Define field specifications
-In `dataProperties.php`, we first define the structure of each field as a multi-dimensional associative array. 
+The field layout and formatting rules are defined in `dataProperties.php` using an associative array.
 
 Each field includes:
-- `position`: TStarting index in the log line (1-based)
-- `length`: Number of characters to extract
-- `format`: How the value should be processed
+- `position`: 1-based start index in the log line
+- `length`: number of characters to extract
+- `format`: how the value should be processed
                                          
 ```php
-$dataProperties = array(
+...
 
-    "userId" => array(
-        "position" => 13,
-        "length"   => 6,
-        "format"   => "text",
-    ),
-
-    "bytesTX" => array(
-        "position" => 19,
-        "length"   => 8,
-        "format"   => "number",
-    ),
-
-    "bytesRX" => array(
-        "position" => 27,
-        "length"   => 8,
-        "format"   => "number",
-    ),
-
-    "dateTime" => array(
-        "position" => 35,
-        "length"   => 17,
-        "format"   => "date",
-    ),
-
-    "id" => array(
-        "position" => 1,
-        "length"   => 12,
-        "format"   => "text",
-    ),
-);
+"dateTime" => [
+    "position" => 35,
+    "length"   => 17,
+    "format"   => "date",
+],
+"id" => array(
+    "position" => 1,
+    "length"   => 12,
+    "format"   => "text",
+),
 ```
 >[!NOTE]
-> The `id` field is placed last in the array to match the required pipe-delimited output order: `<UserID>|<BytesTX|<BytesRX|<DateTime>|<ID>`
+> The field order in this array determines the order of output. In this case, `id` is intentionally listed last to match the required pipe-delimited format.
 
 ## Step 2: Helper functions
-These helper functions are used to extract and format data from the log file.
->[!NOTE]
-> The code provided here is a simplified version of the actual code used in the challenge.
-#
+The helper functions in `helpers.php` handle extraction and formatting:
+- `extractField()`: Extracts a fixed-width substring from a log line.
 
-`yieldEntries($filepath)` 
-Efficiently reads the input file line by line using a generator.
+- `formatNumber()`: Formats numeric values with thousands separators.
 
+- `formatDateTime()`: Converts raw timestamps to a human-readable format.
+
+- `formatValue()`: Centralized dispatcher for formatting values based on their type.
+
+- `formatSortedIDs()`/ `formatUserList()`: Sort and format final outputs.
+
+
+## Step 3: Parse and format the Log
+The main logic is implemented in `parseLogEntries()` in `logParser.php` and `main.php`:
+
+### Stream and parse log entries
 ```php
-function yieldEntries($filePath) {
-    $file = fopen($filePath, 'r');    
-    while (($line = fgets($file)) !== false) {
-        yield $line;
-    }
-    fclose($file);
+foreach ( parseLogEntries (
+  $filePath, 
+  $dataProperties, 
+  $ids, 
+  $uniqueUserIds) 
+  as $formattedEntry) {
+    $outputLines[] = $formattedEntry;
 }
 ```
+Each log entry line is:
+- Sliced according to the positions in dataProperties
+- Formatted according to its type
+- Yielded as a pipe-delimited string
 
-> [!TIP]
-> Using a generator allows the file to be processed line by line without loading the entire file into memory, reducing memory usage and improving performance.
+The function also updates $uniqueUserIDs and $ids by reference.
 
-##
+### Output generation
+After all entries are parsed, and all `ids` and `uniqueUserIds` are sorted, the final output is generated.
 
-`extractField()` 
-Extracts a field entry by position and length, then trims whitespace.
-```php
-function extractField($entry, $position, $length) {
-    return trim(substr($entry, $position, $length));
-}
+#### Section 1: Pipe delimited version of the log.
+Pipe-delimited entries are written first:
+```yaml
+GITB|660,428|424,450|Tue, 10 September 2019 06:05:00|58QV-Q26X
+LBCA|476,255|413,615|Tue, 10 September 2019 06:09:00|278NV-Y69K
+CHAI|955,937|669,285|Tue, 10 September 2019 06:15:00|665PP-G26P
+JOVB|287,303|45,136|Tue, 10 September 2019 06:20:00|455YS-Y87A
 ```
 
-##
-
-`formatNumber()` 
-formats a number by adding comma separators for thousands.
-```php
-function formatNumber($value) {
-    return number_format($value);
-}
+#### Section 2: Sorted IDs in ascending order
+IDs are sorted using `natsort()` for natural order:
+```yaml
+9WR-L57J
+9YY-R97L
+10DE-Z54C
+10DR-V9C
 ```
 
-##
-
-`formatDateTime()` converts a date-time string into the following format: `Day, dd Month YYYY HH:mm:ss`
-```php
-function formatDateTime($dateTime) {
-    $timestamp = strtotime($dateTime);
-    if ($timestamp === false) return $dateTime;
-    return date('D, d F Y H:i:s', $timestamp);
-}
+#### Section 3: Sorted Unique User IDs in ascending order
+User IDs are sorted and numbered:
+```yaml
+[1] AALP
+[2] ABCM
+[3] ABRB
+[4] ABYW
 ```
 
-## Step 3: Implement the solution
-The solution is implemented in `index.php`.
-### Initialization and setup
-```php
-require 'dataProperties.php';
-require 'helpers.php';
-```
-```php
-$filePath = 'sample-log.txt';
-$outputPath = 'output.txt';
-```
-```php
-$logEntries = [];
-$uniqueUserIDs = [];
-$outputLines = [];
-```
+#### Final output
+The output is written in `output.txt` as structured sections: 
 
-### Parse and format log entries
-Since we are using a generator, we can efficiently read the input file line by line, extracting the fields and formatting them at the same time.
-```php
-foreach (yieldEntries($filePath) as $entry) {
-  if ($entry === false) break; 
-  $parsedData = [];
+```yaml
+GITB|660,428|424,450|Tue, 10 September 2019 06:05:00|58QV-Q26X
+LBCA|476,255|413,615|Tue, 10 September 2019 06:09:00|278NV-Y69K
+CHAI|955,937|669,285|Tue, 10 September 2019 06:15:00|665PP-G26P
+JOVB|287,303|45,136|Tue, 10 September 2019 06:20:00|455YS-Y87A
+...
 
-  foreach ($dataProperties as $key => $property) {
-    $value = extractField($entry, $property['position']-1, $property['length']);
+9WR-L57J
+9YY-R97L
+10DE-Z54C
+10DR-V9C
+...
 
-    switch($property['format']){
-      case 'number': 
-        $value = formatNumber($value); 
-        break;
-
-      case 'date': 
-        $value = formatDateTime($value); 
-        break;
-
-      default: $value;
-    }
-    $parsedData[$key] = $value;
-  }
-  $logEntries[] = $parsedData;
-  $uniqueUserIDs[$parsedData['userId']] = true; 
-}
-```
-
-###  Sort and extract IDs and Unique User IDs
-`natsort()` is used to sort the IDs because they are in a mixed case format.
-```php
-$ids = array_column($logEntries, 'id');
-natsort($ids);
-$ids = array_values($ids);
-```
-```php
-$userIDs = array_keys($uniqueUserIDs);
-sort($userIDs);
-$userIDs = array_values($userIDs); 
-```
-
-### Generate output
-```php
-$outputLines[] = "SECTION 1: Pipe delimited version of the log.";
-foreach ($logEntries as $entry) {
-  $values = [];
-  foreach (array_keys($dataProperties) as $key) $values[] = $entry[$key];
-  $outputLines[] = implode('|', $values);
-}
-```
-```php
-$outputLines[] = "\nSECTION 2: IDs sorted in ascending order.";
-foreach ($ids as $id) $outputLines[] = $id;
-```
-```php
-$outputLines[] = "\nSECTION 3: Unique User IDs sorted in ascending order, numbers are enclosed in [ ].";
-foreach ($userIDs as $index => $userID) $outputLines[] = "[" . ($index + 1) . "] " . $userID;
-```
-
-### Write output to file
-```php
-file_put_contents($outputPath, implode(PHP_EOL, $outputLines));
+[1] AALP
+[2] ABCM
+[3] ABRB
+[4] ABYW
+...
 ```

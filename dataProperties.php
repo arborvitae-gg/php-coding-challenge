@@ -1,34 +1,34 @@
 <?php
 
-$dataProperties = array(
+return [
 
-    "userId" => array(
+    "userId" => [
         "position" => 13,
         "length"   => 6,
         "format"   => "text",
-    ),
+    ],
 
-    "bytesTX" => array(
+    "bytesTX" => [
         "position" => 19,
         "length"   => 8,
         "format"   => "number",
-    ),
+    ],
 
-    "bytesRX" => array(
+    "bytesRX" => [
         "position" => 27,
         "length"   => 8,
         "format"   => "number",
-    ),
+    ],
 
-    "dateTime" => array(
+    "dateTime" => [
         "position" => 35,
         "length"   => 17,
         "format"   => "date",
-    ),
+    ],
 
-    "id" => array(
+    "id" => [
         "position" => 1,
         "length"   => 12,
         "format"   => "text",
-    ),
-);
+    ],
+];
